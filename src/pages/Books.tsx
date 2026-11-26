@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useData, useYears } from '../App';
 import { Datalist, Field, Modal, Rating, YearSelect } from '../components/ui';
-import { ddmm, FORMATS, label, LANGUAGES, MONTHS, MONTHS_SHORT, periodFromYear, periodLabel } from '../lib/format';
+import { ddmm, FORMATS, label, plural, LANGUAGES, MONTHS, MONTHS_SHORT, periodFromYear, periodLabel } from '../lib/format';
 import type { Book, NewRow } from '../lib/types';
 
 type SortKey = 'order' | 'title' | 'author' | 'rating' | 'pages';
@@ -49,17 +49,25 @@ export default function BooksPage() {
         <table className="list">
           <thead>
             <tr>
-              {th('order', '№')}<th>Месяц</th><th>Даты</th>{th('title', 'Название', 'title-h')}{th('author', 'Автор')}{th('rating', 'Оценка', 'num')}
+              {th('order', '№')}<th>Месяц</th><th>Даты</th><th className="pick-h" title="Любимая / нелюбимая книга месяца">💖</th>{th('title', 'Название', 'title-h')}{th('author', 'Автор')}{th('rating', 'Оценка', 'num')}
               <th>Жанр</th><th>Откуда</th><th>Язык</th><th>Страна</th><th>Год</th>{th('pages', 'Стр.', 'num')}<th>Формат</th><th title="Новый автор / перечитываю">Метки</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ b, n }) => (
-              <tr key={b.id} onClick={() => setEdit(b)}>
+            {rows.map(({ b, n }, i) => {
+              const prev = rows[i - 1]?.b;
+              const newMonth = sort.k === 'order' && (!prev || prev.month !== b.month || prev.year !== b.year);
+              const inMonth = newMonth ? rows.filter((r) => r.b.year === b.year && r.b.month === b.month).length : 0;
+              return (<Fragment key={b.id}>
+              {newMonth && (
+                <tr className="month-sep"><td colSpan={15}><span>{b.month ? MONTHS[b.month - 1] : 'без месяца'}{year === 'all' ? ` ${b.year}` : ''} <small>· {inMonth} {plural(inMonth, 'книга', 'книги', 'книг')}</small></span></td></tr>
+              )}
+              <tr onClick={() => setEdit(b)}>
                 <td className="muted">{year === 'all' ? `${b.year}·${n}` : n}</td>
                 <td>{b.month ? MONTHS_SHORT[b.month - 1] : ''}</td>
                 <td className="nowrap muted">{[b.start_date, b.end_date].filter((d, i, a) => d && a.indexOf(d) === i).map(ddmm).join('–')}</td>
-                <td className="title">{b.pick === 'fav' && <span title="Любимая книга месяца">💖 </span>}{b.pick === 'worst' && <span title="Нелюбимая книга месяца">🥀 </span>}{b.title}</td>
+                <td className="pickcol">{b.pick === 'fav' && <span title="Любимая книга месяца">💖</span>}{b.pick === 'worst' && <span title="Нелюбимая книга месяца">🥀</span>}</td>
+                <td className="title">{b.title}</td>
                 <td>{b.author}</td>
                 <td className="num"><Rating v={b.rating} /></td>
                 <td>{b.genre}</td>
@@ -71,7 +79,8 @@ export default function BooksPage() {
                 <td>{label(FORMATS, b.format)}</td>
                 <td className="nowrap">{b.new_author && <span className="tag">✨ новый автор</span>}{b.first_time === false && <span className="tag">🔁 перечитала</span>}</td>
               </tr>
-            ))}
+              </Fragment>);
+            })}
           </tbody>
         </table>
       </div>

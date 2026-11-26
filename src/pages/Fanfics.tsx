@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useData, useYears } from '../App';
 import { BarChart } from '../components/Charts';
 import { Card, Datalist, Field, Modal, Rating, Tile, YearSelect } from '../components/ui';
-import { fmt, fmt2, label, LANGUAGES, MONTHS, MONTHS_SHORT } from '../lib/format';
+import { fmt, fmt2, label, plural, LANGUAGES, MONTHS, MONTHS_SHORT } from '../lib/format';
 import { byMonth, countBy, fanficSummary, ffGenreGroups, ratingHist } from '../lib/stats';
 import type { Fanfic, NewRow } from '../lib/types';
 
@@ -60,14 +60,22 @@ export default function FanficsPage() {
             <table className="list">
               <thead><tr><th>№</th><th>Месяц</th><th className="title-h">Название</th><th>Фандом</th><th className="num">Оценка</th><th>Язык</th><th>Сайт</th><th>Жанр</th><th>Пометки</th></tr></thead>
               <tbody>
-                {list.map(({ f, n }) => (
-                  <tr key={f.id} onClick={() => setEdit(f)}>
+                {list.map(({ f, n }, i) => {
+                  const prev = list[i - 1]?.f;
+                  const newMonth = !prev || prev.month !== f.month || prev.year !== f.year;
+                  const inMonth = newMonth ? list.filter((r) => r.f.year === f.year && r.f.month === f.month).length : 0;
+                  return (<Fragment key={f.id}>
+                  {newMonth && (
+                    <tr className="month-sep"><td colSpan={9}><span>{f.month ? MONTHS[f.month - 1] : 'без месяца'}{year === 'all' ? ` ${f.year}` : ''} <small>· {inMonth} {plural(inMonth, 'фанфик', 'фанфика', 'фанфиков')}</small></span></td></tr>
+                  )}
+                  <tr onClick={() => setEdit(f)}>
                     <td className="muted">{year === 'all' ? `${f.year}·${n}` : n}</td>
                     <td>{f.month ? MONTHS_SHORT[f.month - 1] : ''}</td>
                     <td className="title">{f.title}</td><td>{f.fandom}</td><td className="num"><Rating v={f.rating} /></td>
                     <td>{f.language}</td><td>{f.site}</td><td>{f.genre}</td><td className="notes">{f.notes}</td>
                   </tr>
-                ))}
+                  </Fragment>);
+                })}
               </tbody>
             </table>
           </div>
