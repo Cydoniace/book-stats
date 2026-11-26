@@ -49,7 +49,7 @@ export default function BooksPage() {
         <table className="list books">
           <thead>
             <tr>
-              {th('order', '№')}<th>Месяц</th><th>Даты</th><th className="pick-h" title="Любимая / нелюбимая книга месяца">💖</th>{th('title', 'Название', 'title-h')}{th('author', 'Автор', 'author-h')}{th('rating', 'Оценка', 'num')}
+              {th('order', '№')}<th>Даты</th><th>Месяц</th><th className="pick-h" title="Любимая / нелюбимая книга месяца">💖</th>{th('title', 'Название', 'title-h')}{th('author', 'Автор', 'author-h')}{th('rating', 'Оценка', 'num')}
               <th>Жанр</th><th>Откуда</th><th>Язык</th><th>Страна</th><th>Год</th>{th('pages', 'Стр.', 'num')}<th>Формат</th><th title="Новый автор / перечитываю">Метки</th>
             </tr>
           </thead>
@@ -64,8 +64,8 @@ export default function BooksPage() {
               )}
               <tr onClick={() => setEdit(b)}>
                 <td className="muted">{year === 'all' ? `${b.year}·${n}` : n}</td>
-                <td>{b.month ? MONTHS_SHORT[b.month - 1] : ''}</td>
                 <td className="nowrap muted">{[b.start_date, b.end_date].filter((d, i, a) => d && a.indexOf(d) === i).map(ddmm).join('–')}</td>
+                <td>{b.month ? MONTHS_SHORT[b.month - 1] : ''}</td>
                 <td className="pickcol">{b.pick === 'fav' && <span title="Любимая книга месяца">💖</span>}{b.pick === 'worst' && <span title="Нелюбимая книга месяца">🥀</span>}</td>
                 <td className="title">{b.title}</td>
                 <td className="author">{b.author}</td>
