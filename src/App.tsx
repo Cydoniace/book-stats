@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { emptyDb, store, supabase } from './lib/store';
 import type { Db, NewRow, Row, Table } from './lib/types';
+import { applyTheme, themeFor, type Theme } from './lib/theme';
 import Login from './pages/Login';
 import BooksPage from './pages/Books';
 import StatsPage from './pages/Stats';
@@ -15,12 +16,17 @@ interface DataCtx {
   save<T extends Table>(t: T, row: NewRow<T>, id?: number): Promise<void>;
   remove(t: Table, id: number): Promise<void>;
   reload(): Promise<void>;
+  /** Выбранный год — общий для всех вкладок. */
+  year: number | 'all';
+  setYear(y: number | 'all'): void;
+  theme: Theme;
+  dark: boolean;
 }
 const Ctx = createContext<DataCtx>(null!);
 export const useData = () => useContext(Ctx);
 
 const TABS = [
-  ['books', 'Книги'], ['stats', 'Статистика'], ['fanfics', 'Фанфики'], ['toread', 'To read'], ['compare', 'По годам'], ['data', 'Данные'],
+  ['books', '📖 Книги'], ['stats', '📊 Статистика'], ['fanfics', '💌 Фанфики'], ['toread', '🌱 To read'], ['compare', '🗓 По годам'], ['data', '💾 Данные'],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 const tabFromHash = (): Tab => (TABS.find(([k]) => '#' + k === location.hash)?.[0] ?? 'books');
@@ -32,6 +38,18 @@ export default function App() {
   const [error, setError] = useState('');
   const [tab, setTab] = useState<Tab>(tabFromHash);
   const [startEmpty, setStartEmpty] = useState(false);
+  const [year, setYear] = useState<number | 'all'>(new Date().getFullYear());
+  const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
+  useEffect(() => {
+    const mq = matchMedia('(prefers-color-scheme: dark)');
+    const on = () => setDark(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  // цвет года — на вкладках, где выбран год; остальные — розовые
+  const yearTab = tab === 'books' || tab === 'stats' || tab === 'fanfics';
+  const theme = useMemo(() => themeFor(yearTab ? year : 'all', dark), [yearTab, year, dark]);
+  useEffect(() => applyTheme(theme), [theme]);
 
   useEffect(() => {
     const on = () => setTab(tabFromHash());
@@ -68,9 +86,9 @@ export default function App() {
   if (!signedIn) return <Login />;
 
   return (
-    <Ctx.Provider value={{ db, save, remove, reload }}>
+    <Ctx.Provider value={{ db, save, remove, reload, year, setYear, theme, dark }}>
       <header className="top">
-        <div className="brand">📚 Книжная статистика</div>
+        <div className="brand"><span className="brand-emoji">{theme.emoji}</span> Книжная статистика</div>
         <nav>
           {TABS.map(([k, name]) => (
             <a key={k} href={'#' + k} className={tab === k ? 'on' : ''}>{name}</a>
@@ -82,8 +100,9 @@ export default function App() {
       )}
       {error && <div className="banner err">Ошибка загрузки: {error} <button onClick={reload}>Повторить</button></div>}
       <main>
-        {loading && !db.books.length ? <p className="muted">Загрузка…</p> : !db.books.length && !db.fanfics.length && !db.toread.length && tab !== 'data' && !startEmpty ? (
+        {loading && !db.books.length ? <p className="muted loading">Загружаю книжки… 🌷</p> : !db.books.length && !db.fanfics.length && !db.toread.length && tab !== 'data' && !startEmpty ? (
           <div className="card empty">
+            <div className="empty-emoji">🧸📚</div>
             <h2>Здесь пока пусто</h2>
             <p>В базе ещё нет ни одной книги. Чтобы перенести данные из Google-таблицы, откройте раздел <b>Данные</b> и в блоке «Импорт» выберите файл <code>import-from-sheet.json</code>.</p>
             {store.mode === 'local' && <p className="muted small">Сайт сейчас в демо-режиме: импорт сохранится только в этом браузере на этом устройстве.</p>}
@@ -100,6 +119,7 @@ export default function App() {
           </>
         )}
       </main>
+      <footer className="foot">сделано с 💗 для любимых книжек</footer>
     </Ctx.Provider>
   );
 }

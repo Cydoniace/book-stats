@@ -1,8 +1,11 @@
 import { ReactNode, useEffect } from 'react';
+import { useData } from '../App';
+import { themeFor } from '../lib/theme';
 
-export function Tile({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
+export function Tile({ label, value, hint, icon }: { label: string; value: ReactNode; hint?: ReactNode; icon?: string }) {
   return (
     <div className="tile">
+      {icon && <div className="tile-icon" aria-hidden>{icon}</div>}
       <div className="tile-label">{label}</div>
       <div className="tile-value">{value}</div>
       {hint && <div className="tile-hint">{hint}</div>}
@@ -20,11 +23,16 @@ export function Card({ title, children, wide }: { title: string; children: React
 }
 
 export function YearSelect({ years, value, onChange, all }: { years: number[]; value: number | 'all'; onChange: (y: number | 'all') => void; all?: boolean }) {
+  const { dark } = useData();
+  const style = (y: number | 'all') => {
+    const t = themeFor(y, dark);
+    return { '--y-soft': t.soft, '--y-accent': t.accent, '--y-bar': t.bar } as React.CSSProperties;
+  };
   return (
-    <div className="seg" role="tablist">
-      {all && <button className={value === 'all' ? 'on' : ''} onClick={() => onChange('all')}>все годы</button>}
+    <div className="years" role="tablist">
+      {all && <button style={style('all')} className={value === 'all' ? 'on' : ''} onClick={() => onChange('all')}>✨ все годы</button>}
       {years.map((y) => (
-        <button key={y} className={value === y ? 'on' : ''} onClick={() => onChange(y)}>{y}</button>
+        <button key={y} style={style(y)} className={value === y ? 'on' : ''} onClick={() => onChange(y)}>{themeFor(y, dark).emoji} {y}</button>
       ))}
     </div>
   );
@@ -71,4 +79,10 @@ export function CountTable({ rows, head }: { rows: [string, ReactNode][]; head: 
       <tbody>{rows.map(([k, v]) => <tr key={k}><td>{k}</td><td className="num">{v}</td></tr>)}</tbody>
     </table>
   );
+}
+
+/** Оценка в кружочке: 10 — с сердечком. */
+export function Rating({ v }: { v: number | null }) {
+  if (v == null) return null;
+  return <span className={'rating' + (v >= 9 ? ' hi' : v <= 5 ? ' lo' : '')}>{v}{v >= 10 ? ' 💖' : ''}</span>;
 }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData, useYears } from '../App';
-import { Datalist, Field, Modal, YearSelect } from '../components/ui';
+import { Datalist, Field, Modal, Rating, YearSelect } from '../components/ui';
 import { ddmm, FORMATS, label, LANGUAGES, MONTHS, MONTHS_SHORT, periodFromYear, periodLabel } from '../lib/format';
 import type { Book, NewRow } from '../lib/types';
 
@@ -9,7 +9,7 @@ type SortKey = 'order' | 'title' | 'author' | 'rating' | 'pages';
 export default function BooksPage() {
   const { db } = useData();
   const years = useYears(db.books);
-  const [year, setYear] = useState<number | 'all'>(years[0]);
+  const { year, setYear } = useData();
   const [q, setQ] = useState('');
   const [genre, setGenre] = useState('');
   const [sort, setSort] = useState<{ k: SortKey; desc: boolean }>({ k: 'order', desc: true });
@@ -42,7 +42,7 @@ export default function BooksPage() {
           <option value="">все жанры</option>
           {genres.map((g) => <option key={g}>{g}</option>)}
         </select>
-        <button className="primary" onClick={() => setEdit('new')}>+ Книга</button>
+        <button className="primary" onClick={() => setEdit('new')}>＋ Книга</button>
       </div>
       <p className="muted small">Показано {rows.length} из {inYear.length}. Нажмите на строку, чтобы изменить.</p>
       <div className="table-wrap scroll">
@@ -59,9 +59,9 @@ export default function BooksPage() {
                 <td className="muted">{year === 'all' ? `${b.year}·${n}` : n}</td>
                 <td>{b.month ? MONTHS_SHORT[b.month - 1] : ''}</td>
                 <td className="nowrap muted">{[b.start_date, b.end_date].filter((d, i, a) => d && a.indexOf(d) === i).map(ddmm).join('–')}</td>
-                <td className="title">{b.pick === 'fav' && <span title="Любимая книга месяца">♥ </span>}{b.pick === 'worst' && <span title="Нелюбимая книга месяца">✗ </span>}{b.title}</td>
+                <td className="title">{b.pick === 'fav' && <span title="Любимая книга месяца">💖 </span>}{b.pick === 'worst' && <span title="Нелюбимая книга месяца">🥀 </span>}{b.title}</td>
                 <td>{b.author}</td>
-                <td className="num"><b>{b.rating ?? ''}</b></td>
+                <td className="num"><Rating v={b.rating} /></td>
                 <td>{b.genre}</td>
                 <td>{b.source}</td>
                 <td>{b.language}</td>
@@ -69,7 +69,7 @@ export default function BooksPage() {
                 <td className="muted">{b.pub_year}</td>
                 <td className="num">{b.pages ?? ''}</td>
                 <td>{label(FORMATS, b.format)}</td>
-                <td className="nowrap">{b.new_author && <span className="tag">новый автор</span>}{b.first_time === false && <span className="tag">перечитала</span>}</td>
+                <td className="nowrap">{b.new_author && <span className="tag">✨ новый автор</span>}{b.first_time === false && <span className="tag">🔁 перечитала</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -123,7 +123,7 @@ function BookForm({ book, defYear, onClose }: { book: Book | null; defYear: numb
   };
 
   return (
-    <Modal title={book ? 'Изменить книгу' : 'Новая книга'} onClose={onClose}>
+    <Modal title={book ? '✏️ Изменить книгу' : '📖 Новая книга'} onClose={onClose}>
       <form className="form" onSubmit={submit}>
         <Field label="Название" wide><input value={f.title} onChange={(e) => set('title', e.target.value)} required autoFocus /></Field>
         <Field label="Автор" wide><input list="dl-author" value={f.author} onChange={(e) => set('author', e.target.value)} /></Field>
@@ -164,7 +164,7 @@ function BookForm({ book, defYear, onClose }: { book: Book | null; defYear: numb
         </Field>
         <Field label="Книга месяца">
           <select value={f.pick ?? ''} onChange={(e) => set('pick', (e.target.value || null) as Book['pick'])}>
-            <option value="">—</option><option value="fav">♥ любимая</option><option value="worst">✗ нелюбимая</option>
+            <option value="">—</option><option value="fav">💖 любимая</option><option value="worst">🥀 нелюбимая</option>
           </select>
         </Field>
         <div className="checks wide">

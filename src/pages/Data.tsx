@@ -33,7 +33,7 @@ export default function DataPage() {
       const strip = <T extends { id?: number }>(rows: T[] = []) => rows.map(({ id: _id, ...r }) => r);
       await store.bulk({ books: strip(data.books), fanfics: strip(data.fanfics), toread: strip(data.toread) } as never, replace);
       await reload();
-      setMsg(`Готово, загружено — ${n}`);
+      setMsg(`Готово, загружено — ${n} 🎉`);
     } catch (e) { setMsg('Ошибка: ' + (e as Error).message); }
     setBusy(false);
     if (file.current) file.current.value = '';
@@ -41,12 +41,12 @@ export default function DataPage() {
 
   return (
     <div className="grid">
-      <Card title="Резервная копия">
+      <Card title="💾 Резервная копия">
         <p>Сейчас в базе: книг <b>{db.books.length}</b>, фанфиков <b>{db.fanfics.length}</b>, to read <b>{db.toread.length}</b>.</p>
         <p className="muted small">Файл со всеми данными в формате JSON. Его можно загрузить обратно через импорт.</p>
         <button className="primary" onClick={exportJson}>Скачать копию</button>
       </Card>
-      <Card title="Импорт">
+      <Card title="📥 Импорт">
         <p className="muted small">Загрузите файл резервной копии или файл, собранный из старой Google-таблицы (tools/sheet_to_json.py).</p>
         <div className="checks">
           <label><input type="radio" checked={replace} onChange={() => setReplace(true)} /> заменить всё</label>
@@ -56,7 +56,7 @@ export default function DataPage() {
         {busy && <p className="muted">Загрузка…</p>}
         {msg && <p>{msg}</p>}
       </Card>
-      <Card title="Аккаунт">
+      <Card title="🙋‍♀️ Аккаунт">
         {supabase ? (
           <button onClick={() => supabase!.auth.signOut()}>Выйти</button>
         ) : (

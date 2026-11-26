@@ -16,7 +16,9 @@ export default function Login() {
   return (
     <div className="login">
       <form onSubmit={submit} className="card">
-        <h2>📚 Книжная статистика</h2>
+        <div className="empty-emoji">📚🌸</div>
+        <h2>Книжная статистика</h2>
+        <p className="muted small">Привет! Входи, книжки ждут 💗</p>
         <label className="field"><span>Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" /></label>
         <label className="field"><span>Пароль</span><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" /></label>
         {err && <p className="err-text">{err}</p>}

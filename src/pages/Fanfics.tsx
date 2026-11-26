@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useData, useYears } from '../App';
 import { BarChart } from '../components/Charts';
-import { Card, Datalist, Field, Modal, Tile, YearSelect } from '../components/ui';
+import { Card, Datalist, Field, Modal, Rating, Tile, YearSelect } from '../components/ui';
 import { fmt, fmt2, label, LANGUAGES, MONTHS, MONTHS_SHORT } from '../lib/format';
 import { byMonth, countBy, fanficSummary, ffGenreGroups, ratingHist } from '../lib/stats';
 import type { Fanfic, NewRow } from '../lib/types';
@@ -9,7 +9,7 @@ import type { Fanfic, NewRow } from '../lib/types';
 export default function FanficsPage() {
   const { db } = useData();
   const years = useYears(db.fanfics);
-  const [year, setYear] = useState<number | 'all'>(years[0]);
+  const { year, setYear } = useData();
   const [view, setView] = useState<'stats' | 'list'>('stats');
   const [q, setQ] = useState('');
   const [edit, setEdit] = useState<Fanfic | 'new' | null>(null);
@@ -32,25 +32,25 @@ export default function FanficsPage() {
           <button className={view === 'stats' ? 'on' : ''} onClick={() => setView('stats')}>статистика</button>
           <button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>список</button>
         </div>
-        <button className="primary" onClick={() => setEdit('new')}>+ Фанфик</button>
+        <button className="primary" onClick={() => setEdit('new')}>＋ Фанфик</button>
       </div>
       {view === 'stats' ? (
         <>
           <div className="tiles">
-            <Tile label="Фанфиков" value={fmt(s.count)} />
-            <Tile label="Средняя оценка" value={fmt2(s.avg)} hint={`медиана ${fmt2(s.median)}`} />
-            <Tile label="Главный фандом" value={countBy(ff, (f) => f.fandom)[0]?.[0] ?? '—'} />
+            <Tile icon="💌" label="Фанфиков" value={fmt(s.count)} />
+            <Tile icon="⭐" label="Средняя оценка" value={fmt2(s.avg)} hint={`медиана ${fmt2(s.median)}`} />
+            <Tile icon="💜" label="Главный фандом" value={countBy(ff, (f) => f.fandom)[0]?.[0] ?? '—'} />
           </div>
           <div className="grid">
-            <Card title="По месяцам"><BarChart labels={MONTHS_SHORT} series={[{ label: 'фанфиков', data: byMonth(ff) }]} /></Card>
-            <Card title="Оценки"><BarChart labels={ratingHist(ff).map((_, i) => String(i))} series={[{ label: 'фанфиков', data: ratingHist(ff) }]} /></Card>
-            <Card title="Жанры">
+            <Card title="🗓 По месяцам"><BarChart labels={MONTHS_SHORT} series={[{ label: 'фанфиков', data: byMonth(ff) }]} /></Card>
+            <Card title="⭐ Оценки"><BarChart labels={ratingHist(ff).map((_, i) => String(i))} series={[{ label: 'фанфиков', data: ratingHist(ff) }]} /></Card>
+            <Card title="🎀 Жанры">
               {bars(groups)}
               <p className="muted small">Фанфик с несколькими жанрами считается в каждом из них.</p>
             </Card>
-            <Card title="Сайты">{bars(countBy(ff, (f) => f.site))}</Card>
-            <Card title="Фандомы">{bars(countBy(ff, (f) => f.fandom))}</Card>
-            <Card title="Язык">{bars(countBy(ff, (f) => f.language), LANGUAGES)}</Card>
+            <Card title="🌐 Сайты">{bars(countBy(ff, (f) => f.site))}</Card>
+            <Card title="💜 Фандомы">{bars(countBy(ff, (f) => f.fandom))}</Card>
+            <Card title="💬 Язык">{bars(countBy(ff, (f) => f.language), LANGUAGES)}</Card>
           </div>
         </>
       ) : (
@@ -64,7 +64,7 @@ export default function FanficsPage() {
                   <tr key={f.id} onClick={() => setEdit(f)}>
                     <td className="muted">{year === 'all' ? `${f.year}·${n}` : n}</td>
                     <td>{f.month ? MONTHS_SHORT[f.month - 1] : ''}</td>
-                    <td className="title">{f.title}</td><td>{f.fandom}</td><td className="num"><b>{f.rating ?? ''}</b></td>
+                    <td className="title">{f.title}</td><td>{f.fandom}</td><td className="num"><Rating v={f.rating} /></td>
                     <td>{f.language}</td><td>{f.site}</td><td>{f.genre}</td><td className="notes">{f.notes}</td>
                   </tr>
                 ))}

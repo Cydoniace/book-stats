@@ -3,9 +3,11 @@ import { BarChart, LineChart } from '../components/Charts';
 import { Card } from '../components/ui';
 import { fmt, fmt2, MONTHS_SHORT } from '../lib/format';
 import { bookSummary, byMonth, fanficSummary } from '../lib/stats';
+import { themeFor } from '../lib/theme';
 
 export default function ComparePage() {
-  const { db } = useData();
+  const { db, dark } = useData();
+  const color = (y: number) => themeFor(y, dark).bar;
   const years = [...new Set([...db.books, ...db.fanfics].map((r) => r.year))].sort();
   if (!years.length) return <p className="muted">Данных пока нет.</p>;
   const rows = years.map((y) => {
@@ -23,7 +25,7 @@ export default function ComparePage() {
       <div className="table-wrap">
         <table className="mini compare">
           <thead>
-            <tr><th></th>{rows.map((r) => <th key={r.y} className="num">{r.y}</th>)}<th className="num">всего</th></tr>
+            <tr><th></th>{rows.map((r) => <th key={r.y} className="num"><span className="year-chip" style={{ background: themeFor(r.y, dark).soft, color: themeFor(r.y, dark).accent }}>{themeFor(r.y, dark).emoji} {r.y}</span></th>)}<th className="num">всего</th></tr>
           </thead>
           <tbody>
             <tr><td>Книг</td>{rows.map((r) => <td key={r.y} className="num"><b>{r.s.count}</b></td>)}<td className="num"><b>{all.count}</b></td></tr>
@@ -40,16 +42,16 @@ export default function ComparePage() {
         </table>
       </div>
       <div className="grid">
-        <Card title="Книг за год"><BarChart labels={rows.map((r) => String(r.y))} series={[{ label: 'книг', data: rows.map((r) => r.s.count) }]} /></Card>
-        <Card title="Страниц за год"><BarChart labels={rows.map((r) => String(r.y))} series={[{ label: 'страниц', data: rows.map((r) => r.s.pages) }]} format={fmt} /></Card>
-        <Card title="Книг с начала года (нарастающим итогом)" wide>
+        <Card title="📚 Книг за год"><BarChart labels={rows.map((r) => `${themeFor(r.y, dark).emoji} ${r.y}`)} series={[{ label: 'книг', data: rows.map((r) => r.s.count), colors: rows.map((r) => color(r.y)) }]} /></Card>
+        <Card title="📄 Страниц за год"><BarChart labels={rows.map((r) => `${themeFor(r.y, dark).emoji} ${r.y}`)} series={[{ label: 'страниц', data: rows.map((r) => r.s.pages), colors: rows.map((r) => color(r.y)) }]} format={fmt} /></Card>
+        <Card title="📈 Книг с начала года (нарастающим итогом)" wide>
           <LineChart labels={MONTHS_SHORT} series={recent.map((r) => {
             const c = cumulative(byMonth(r.b));
-            return { label: String(r.y), data: r.y === thisYear ? c.map((v, i) => (i <= curMonth ? v : null)) : c };
+            return { label: `${themeFor(r.y, dark).emoji} ${r.y}`, color: color(r.y), data: r.y === thisYear ? c.map((v, i) => (i <= curMonth ? v : null)) : c };
           })} height={280} />
         </Card>
-        <Card title="Книг по месяцам" wide>
-          <BarChart labels={MONTHS_SHORT} series={recent.map((r) => ({ label: String(r.y), data: byMonth(r.b) }))} />
+        <Card title="🗓 Книг по месяцам" wide>
+          <BarChart labels={MONTHS_SHORT} series={recent.map((r) => ({ label: `${themeFor(r.y, dark).emoji} ${r.y}`, color: color(r.y), data: byMonth(r.b) }))} />
         </Card>
       </div>
     </>

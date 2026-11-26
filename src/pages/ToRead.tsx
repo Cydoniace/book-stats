@@ -26,11 +26,11 @@ export default function ToReadPage() {
           <button className={only === 'no' ? 'on' : ''} onClick={() => setOnly('no')}>не скачаны</button>
         </div>
         <button onClick={random} disabled={!list.length}>🎲 Случайная книга</button>
-        <button className="primary" onClick={() => setEdit('new')}>+ Книга</button>
+        <button className="primary" onClick={() => setEdit('new')}>＋ Книга</button>
       </div>
       {pick && (
         <div className="pick card">
-          <div className="muted small">Сегодня читаем:</div>
+          <div className="muted small">🎲 Сегодня читаем:</div>
           <div className="pick-title">{pick.title}</div>
           <div>{pick.author}{pick.comment && <span className="muted"> · {pick.comment}</span>}</div>
           <div className="actions"><button onClick={random}>Ещё раз</button><button className="ghost" onClick={() => setPick(null)}>Скрыть</button></div>
@@ -64,7 +64,7 @@ function ToReadForm({ item, onClose }: { item: ToRead | null; onClose: () => voi
   });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
   return (
-    <Modal title={item ? 'Изменить' : 'Хочу прочитать'} onClose={onClose}>
+    <Modal title={item ? '✏️ Изменить' : '🌱 Хочу прочитать'} onClose={onClose}>
       <form className="form" onSubmit={async (e) => { e.preventDefault(); await save('toread', f, item?.id); onClose(); }}>
         <Field label="Название" wide><input value={f.title} onChange={(e) => set('title', e.target.value)} required autoFocus /></Field>
         <Field label="Автор" wide><input value={f.author} onChange={(e) => set('author', e.target.value)} /></Field>

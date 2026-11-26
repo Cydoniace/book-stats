@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useData } from '../App';
 import {
   Chart as ChartJS, BarElement, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend,
   type ChartOptions,
@@ -7,27 +7,13 @@ import { Bar, Line } from 'react-chartjs-2';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend);
 
-/** Цвета графиков берём из CSS-переменных, чтобы светлая и тёмная темы менялись в одном месте. */
+/** Цвета графиков берём из темы выбранного года. */
 function useTheme() {
-  const read = () => {
-    const s = getComputedStyle(document.documentElement);
-    const v = (n: string) => s.getPropertyValue(n).trim();
-    return {
-      series: [v('--series-1'), v('--series-2'), v('--series-3'), v('--series-4')],
-      text: v('--text-2'), grid: v('--grid'), axis: v('--axis'), surface: v('--surface'), ink: v('--text'),
-    };
-  };
-  const [t, setT] = useState(read);
-  useEffect(() => {
-    const mq = matchMedia('(prefers-color-scheme: dark)');
-    const on = () => setT(read());
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-  return t;
+  const { theme } = useData();
+  return { bar: theme.bar, text: theme.text2, grid: theme.grid, axis: theme.axis, surface: theme.surface, ink: theme.text };
 }
 
-const font = { family: 'system-ui, -apple-system, "Segoe UI", sans-serif', size: 12 };
+const font = { family: 'Nunito, system-ui, -apple-system, "Segoe UI", sans-serif', size: 12, weight: 600 as const };
 
 function baseOptions(t: ReturnType<typeof useTheme>, horizontal: boolean, legend: boolean): ChartOptions<'bar' | 'line'> {
   const valueAxis = { grid: { color: t.grid }, border: { display: false }, ticks: { color: t.text, font, precision: 0 }, beginAtZero: true };
@@ -40,13 +26,13 @@ function baseOptions(t: ReturnType<typeof useTheme>, horizontal: boolean, legend
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: legend, position: 'top', align: 'start', labels: { color: t.text, font, boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 2 } },
-      tooltip: { backgroundColor: t.ink, titleColor: t.surface, bodyColor: t.surface, padding: 8, cornerRadius: 6, titleFont: font, bodyFont: font },
+      tooltip: { backgroundColor: t.ink, titleColor: t.surface, bodyColor: t.surface, padding: 10, cornerRadius: 12, titleFont: font, bodyFont: font },
     },
     scales: horizontal ? { x: valueAxis, y: catAxis } : { x: catAxis, y: valueAxis },
   } as ChartOptions<'bar' | 'line'>;
 }
 
-export interface Series { label: string; data: (number | null)[] }
+export interface Series { label: string; data: (number | null)[]; color?: string; colors?: string[] }
 
 export function BarChart({ labels, series, horizontal = false, height, format }: {
   labels: string[]; series: Series[]; horizontal?: boolean; height?: number; format?: (v: number) => string;
@@ -62,7 +48,7 @@ export function BarChart({ labels, series, horizontal = false, height, format }:
         data={{
           labels,
           datasets: series.map((s, i) => ({
-            label: s.label, data: s.data, backgroundColor: t.series[i], borderRadius: 4, borderSkipped: 'start',
+            label: s.label, data: s.data, backgroundColor: s.colors ?? s.color ?? t.bar, borderRadius: 8, borderSkipped: 'start',
             maxBarThickness: horizontal ? 18 : 36, categoryPercentage: 0.8, barPercentage: 0.9,
           })),
         }}
@@ -80,8 +66,8 @@ export function LineChart({ labels, series, height = 240 }: { labels: string[]; 
         data={{
           labels,
           datasets: series.map((s, i) => ({
-            label: s.label, data: s.data, borderColor: t.series[i], backgroundColor: t.series[i],
-            borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointBorderColor: t.surface, pointBorderWidth: 2, tension: 0.25, spanGaps: true,
+            label: s.label, data: s.data, borderColor: s.color ?? t.bar, backgroundColor: s.color ?? t.bar,
+            borderWidth: 3, pointRadius: 5, pointHoverRadius: 7, pointBorderColor: t.surface, pointBorderWidth: 2, tension: 0.25, spanGaps: true,
           })),
         }}
       />
