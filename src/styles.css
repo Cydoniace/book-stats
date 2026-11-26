@@ -197,8 +197,22 @@ table.mini th, table.mini td { padding: 6px 10px; }
 .empty { max-width: 560px; margin: 40px auto; display: flex; flex-direction: column; gap: 10px; text-align: center; align-items: center; }
 .empty p { margin: 0; }
 .loading { text-align: center; padding: 60px 0; font-size: 16px; }
-.pick { margin-bottom: 12px; background: linear-gradient(145deg, var(--accent-soft) 0%, var(--surface) 80%); }
 .pick-title { font-size: 22px; font-weight: 900; margin: 2px 0; color: var(--accent); }
+
+/* случайная книга: фото с сердечком из рук */
+.heart-picker { position: relative; width: min(400px, 100%); margin: auto; animation: pop 0.2s ease-out; }
+.hp-photo { position: relative; border-radius: 26px; overflow: hidden; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35); border: 3px solid var(--surface); }
+.hp-photo img { display: block; width: 100%; height: auto; }
+.hp-heart { position: absolute; left: 60%; top: 83%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.hp-btn { background: rgba(255, 100, 130, 0.88); color: #fff; border: 2px solid rgba(255, 255, 255, 0.7); min-height: 34px; padding: 4px 16px; font-size: 15px; box-shadow: 0 4px 14px rgba(255, 60, 100, 0.45); }
+.hp-btn:hover { background: rgba(255, 60, 100, 0.95); }
+.hp-of { font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 0 6px rgba(255, 60, 100, 0.95); }
+.hp-anim { font-size: 18px; animation: heartGrow 2s ease-in forwards; }
+@keyframes heartGrow { 0% { transform: scale(1); opacity: 1; } 85% { transform: scale(40); opacity: 1; } 100% { transform: scale(40); opacity: 0; } }
+.hp-num { font-size: 40px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(255, 100, 130, 0.95), 0 0 22px rgba(255, 100, 130, 0.7); animation: pop 0.3s ease-out; }
+.hp-result { margin-top: 12px; background: var(--surface); border: 2px solid var(--border); border-radius: 22px; padding: 16px; box-shadow: 0 10px 30px var(--shadow); text-align: center; }
+.hp-result .actions { justify-content: center; margin-top: 10px; }
+.hp-close { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.8); min-height: 32px; padding: 2px 10px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

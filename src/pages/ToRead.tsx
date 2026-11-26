@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useData } from '../App';
 import { Field, Modal } from '../components/ui';
 import type { NewRow, ToRead } from '../lib/types';
@@ -8,12 +8,11 @@ export default function ToReadPage() {
   const [q, setQ] = useState('');
   const [only, setOnly] = useState<'all' | 'yes' | 'no'>('all');
   const [edit, setEdit] = useState<ToRead | 'new' | null>(null);
-  const [pick, setPick] = useState<ToRead | null>(null);
+  const [picker, setPicker] = useState(false);
   const list = useMemo(() => {
     const t = q.trim().toLowerCase();
     return db.toread.filter((r) => (only === 'all' || r.downloaded === (only === 'yes')) && (!t || `${r.title} ${r.author} ${r.comment}`.toLowerCase().includes(t)));
   }, [db.toread, q, only]);
-  const random = () => setPick(list[Math.floor(Math.random() * list.length)] ?? null);
   const toggle = (r: ToRead) => { const { id, ...rest } = r; save('toread', { ...rest, downloaded: !r.downloaded }, id); };
 
   return (
@@ -25,17 +24,10 @@ export default function ToReadPage() {
           <button className={only === 'yes' ? 'on' : ''} onClick={() => setOnly('yes')}>скачаны</button>
           <button className={only === 'no' ? 'on' : ''} onClick={() => setOnly('no')}>не скачаны</button>
         </div>
-        <button onClick={random} disabled={!list.length}>🎲 Случайная книга</button>
+        <button onClick={() => setPicker(true)} disabled={!list.length}>💗 Случайная книга</button>
         <button className="primary" onClick={() => setEdit('new')}>＋ Книга</button>
       </div>
-      {pick && (
-        <div className="pick card">
-          <div className="muted small">🎲 Сегодня читаем:</div>
-          <div className="pick-title">{pick.title}</div>
-          <div>{pick.author}{pick.comment && <span className="muted"> · {pick.comment}</span>}</div>
-          <div className="actions"><button onClick={random}>Ещё раз</button><button className="ghost" onClick={() => setPick(null)}>Скрыть</button></div>
-        </div>
-      )}
+      {picker && <HeartPicker list={list} onOpen={(r) => { setPicker(false); setEdit(r); }} onClose={() => setPicker(false)} />}
       <p className="muted small">{list.length} из {db.toread.length} · скачано {db.toread.filter((r) => r.downloaded).length}</p>
       <div className="table-wrap scroll">
         <table className="list">
@@ -79,5 +71,56 @@ function ToReadForm({ item, onClose }: { item: ToRead | null; onClose: () => voi
         </div>
       </form>
     </Modal>
+  );
+}
+
+/** Выбор случайной книги «как раньше»: Шуга складывает сердечко, сердечко разрастается — и вот номер книги. */
+function HeartPicker({ list, onOpen, onClose }: { list: ToRead[]; onOpen: (r: ToRead) => void; onClose: () => void }) {
+  const [stage, setStage] = useState<'idle' | 'anim' | 'done'>('idle');
+  const [n, setN] = useState(0);
+  const btn = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    btn.current?.focus();
+    const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  }, [onClose]);
+  const roll = () => {
+    setN(Math.floor(Math.random() * list.length) + 1);
+    setStage(matchMedia('(prefers-reduced-motion: reduce)').matches ? 'done' : 'anim');
+  };
+  const book = list[n - 1];
+  return (
+    <div className="modal-bg" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="heart-picker" role="dialog" aria-label="Случайная книга">
+        <div className="hp-photo">
+          <img src="./suga.jpg" alt="Шуга складывает сердечко" />
+          <div className="hp-heart">
+            {stage === 'idle' && (
+              <>
+                <button ref={btn} className="hp-btn" onClick={roll}>Выбрать</button>
+                <span className="hp-of">из {list.length}</span>
+              </>
+            )}
+            {stage === 'anim' && <div className="hp-anim" onAnimationEnd={() => setStage('done')}>❤️</div>}
+            {stage === 'done' && <div className="hp-num">{n}</div>}
+          </div>
+        </div>
+        {stage === 'done' && book && (
+          <div className="hp-result">
+            <div className="muted small">💗 Книга № {n} из {list.length}:</div>
+            <div className="pick-title">{book.title}</div>
+            <div>{book.author}{book.comment && <span className="muted"> · {book.comment}</span>}</div>
+            <div className="actions">
+              <button onClick={() => setStage('idle')}>Ещё раз</button>
+              <button onClick={() => onOpen(book)}>Открыть</button>
+              <span className="spacer" />
+              <button className="ghost" onClick={onClose}>Закрыть</button>
+            </div>
+          </div>
+        )}
+        {stage !== 'done' && <button className="ghost hp-close" onClick={onClose} aria-label="Закрыть">✕</button>}
+      </div>
+    </div>
   );
 }
