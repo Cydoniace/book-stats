@@ -1,0 +1,70 @@
+-- Выполнить один раз: Supabase -> SQL Editor -> New query -> вставить всё -> Run.
+-- Каждая запись принадлежит пользователю (user_id); правила RLS не дают читать и менять чужие записи.
+
+create table if not exists public.books (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  year        int  not null,              -- год, в котором книга прочитана
+  month       int  check (month between 1 and 12),
+  start_date  date,
+  end_date    date,
+  title       text not null,
+  author      text,
+  rating      numeric(3,1),
+  new_author  boolean,                    -- «новый?» — первая книга этого автора
+  pub_year    text,                       -- год издания (бывает «1952,1961»)
+  period      int,                        -- эпоха: век (10..17), 1700, 1750, десятилетие 1800+
+  genre       text,
+  source      text,                       -- «откуда?»
+  language    text,
+  country     text,
+  pages       int,
+  format      text,                       -- paper / ebook / phone
+  first_time  boolean,                    -- «1 раз?» — читаю впервые
+  pick        text check (pick in ('fav', 'worst')),  -- любимая / нелюбимая книга месяца
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists public.fanfics (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  year        int  not null,
+  month       int  check (month between 1 and 12),
+  title       text not null,
+  fandom      text,
+  rating      numeric(3,1),
+  language    text,
+  site        text,
+  genre       text,
+  notes       text,
+  first_time  boolean,
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists public.toread (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  title       text not null,
+  author      text,
+  comment     text,
+  downloaded  boolean not null default false,
+  note        text,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists books_user_year on public.books (user_id, year);
+create index if not exists fanfics_user_year on public.fanfics (user_id, year);
+
+alter table public.books   enable row level security;
+alter table public.fanfics enable row level security;
+alter table public.toread  enable row level security;
+
+do $$
+declare t text;
+begin
+  foreach t in array array['books', 'fanfics', 'toread'] loop
+    execute format('drop policy if exists "own rows" on public.%I', t);
+    execute format('create policy "own rows" on public.%I for all to authenticated
+                    using (user_id = auth.uid()) with check (user_id = auth.uid())', t);
+  end loop;
+end $$;

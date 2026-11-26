@@ -1,0 +1,8 @@
+node_modules
+dist
+*.local
+# выгрузки с личными данными не коммитим
+import*.json
+backup*.json
+sheet/
+*.tsbuildinfo
