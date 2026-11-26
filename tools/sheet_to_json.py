@@ -107,7 +107,7 @@ def rows(path):
 
 
 def main(src, out):
-    books, fanfics, toread = [], [], []
+    books, fanfics, manga, toread = [], [], [], []
     for yy in ('24', '25', '26'):
         year = 2000 + int(yy)
         p = os.path.join(src, f'books{yy}.csv')
@@ -148,7 +148,17 @@ def main(src, out):
                                 cand[names.index(hit[0])]['pick'] = kind
                             else:
                                 print(f'! {year} {MONTHS_FULL[mo-1]}: не нашла книгу «{x[col]}»', file=sys.stderr)
-            books += year_books
+            # манга живёт в отдельном разделе («мангга» — опечатка в таблице)
+            for b in year_books:
+                if b['genre'].lower() in ('манга', 'мангга'):
+                    c = b['country'].lower()
+                    kind = 'манхва' if 'корея' in c else 'манхуа' if 'китай' in c else 'манга'
+                    note = ', '.join(x for x in ['перенесено из книг', f"{b['pages']} стр." if b['pages'] else '',
+                                                 {'paper': 'бумага', 'phone': 'телефон', 'ebook': 'эл. книга'}.get(b['format'], '')] if x)
+                    manga.append(dict(year=b['year'], month=b['month'], title=b['title'], author=b['author'], kind=kind,
+                                      chapters=None, rating=b['rating'], language=b['language'], site='', genre='',
+                                      notes=note, downloaded=False, first_time=b['first_time']))
+            books += [b for b in year_books if b['genre'].lower() not in ('манга', 'мангга')]
         p = os.path.join(src, f'ff{yy}.csv')
         if os.path.exists(p):
             h, data = rows(p)
@@ -182,9 +192,9 @@ def main(src, out):
                                downloaded=dl.startswith(('да', 'da', 'yes')),
                                note=s(' '.join(c for c in [dl.partition(',')[2]] + x[5:] if s(c)))))
     with open(out, 'w', encoding='utf-8') as f:
-        json.dump(dict(version=1, books=books, fanfics=fanfics, toread=toread), f, ensure_ascii=False, indent=1)
+        json.dump(dict(version=1, books=books, fanfics=fanfics, manga=manga, toread=toread), f, ensure_ascii=False, indent=1)
     print(f'книг: {len(books)}, фанфиков: {len(fanfics)} (скачано {sum(1 for f in fanfics if f["downloaded"])}), '
-          f'to read: {len(toread)}, отмечено любимых/нелюбимых: {sum(1 for b in books if b["pick"])}')
+          f'манги: {len(manga)}, to read: {len(toread)}, отмечено любимых/нелюбимых: {sum(1 for b in books if b["pick"])}')
 
 
 if __name__ == '__main__':

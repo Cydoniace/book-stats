@@ -41,8 +41,8 @@ h3 { font-size: 15px; margin: 0 0 12px; font-weight: 800; }
 /* ---------- шапка ---------- */
 .top {
   position: sticky; top: 0; z-index: 5;
-  display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
-  padding: 16px 28px;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 14px 24px;
   background: linear-gradient(120deg, var(--accent-soft) 0%, color-mix(in srgb, var(--surface) 88%, transparent) 55%, var(--accent-soft) 100%);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border-bottom: 3px solid var(--bar);
@@ -52,10 +52,10 @@ h3 { font-size: 15px; margin: 0 0 12px; font-weight: 800; }
 .brand-emoji { font-size: 30px; vertical-align: -3px; }
 .brand-emoji { display: inline-block; animation: wiggle 3s ease-in-out infinite; }
 @keyframes wiggle { 0%, 80%, 100% { transform: rotate(0); } 85% { transform: rotate(-12deg); } 90% { transform: rotate(10deg); } 95% { transform: rotate(-6deg); } }
-.top nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.top nav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
 .top nav::-webkit-scrollbar { display: none; }
 .top nav a {
-  padding: 9px 18px; border-radius: 999px; color: var(--text); text-decoration: none; white-space: nowrap; font-weight: 800; font-size: 16px;
+  padding: 9px 13px; border-radius: 999px; color: var(--text); text-decoration: none; white-space: nowrap; font-weight: 800; font-size: 16px;
   transition: background 0.2s, color 0.2s, transform 0.2s;
 }
 .top nav a:hover { background: var(--row-hover); color: var(--text); transform: translateY(-1px); }
@@ -216,6 +216,10 @@ table.mini th, table.mini td { padding: 6px 10px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 1200px) {
+  .top nav { width: 100%; }
 }
 
 @media (max-width: 760px) {

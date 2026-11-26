@@ -8,11 +8,12 @@ import { themeFor } from '../lib/theme';
 export default function ComparePage() {
   const { db, dark } = useData();
   const color = (y: number) => themeFor(y, dark).bar;
-  const years = [...new Set([...db.books, ...db.fanfics].map((r) => r.year))].sort();
+  const years = [...new Set([...db.books, ...db.fanfics, ...db.manga].map((r) => r.year))].sort();
   if (!years.length) return <p className="muted">Данных пока нет.</p>;
   const rows = years.map((y) => {
     const b = db.books.filter((x) => x.year === y);
-    return { y, b, s: bookSummary(b), f: fanficSummary(db.fanfics.filter((x) => x.year === y)), eng: b.filter((x) => x.language === 'eng').length, paper: b.filter((x) => x.format === 'paper').length };
+    const m = db.manga.filter((x) => x.year === y);
+    return { y, b, s: bookSummary(b), f: fanficSummary(db.fanfics.filter((x) => x.year === y)), m: fanficSummary(m), ch: m.reduce((a, x) => a + (x.chapters ?? 0), 0), eng: b.filter((x) => x.language === 'eng').length, paper: b.filter((x) => x.format === 'paper').length };
   });
   const all = bookSummary(db.books);
   const recent = rows.slice(-4); // на одном графике не больше 4 лет — иначе цвета не различить
@@ -38,6 +39,9 @@ export default function ComparePage() {
             <tr><td>На бумаге</td>{rows.map((r) => <td key={r.y} className="num">{r.paper}<Pct n={r.paper} of={r.s.count} /></td>)}<td className="num">{rows.reduce((a, r) => a + r.paper, 0)}<Pct n={rows.reduce((a, r) => a + r.paper, 0)} of={all.count} /></td></tr>
             <tr><td>Фанфиков</td>{rows.map((r) => <td key={r.y} className="num">{r.f.count}</td>)}<td className="num">{rows.reduce((a, r) => a + r.f.count, 0)}</td></tr>
             <tr><td>Ср. оценка фанфиков</td>{rows.map((r) => <td key={r.y} className="num">{fmt2(r.f.avg)}</td>)}<td className="num">{fmt2(fanficSummary(db.fanfics).avg)}</td></tr>
+            <tr><td>Манги</td>{rows.map((r) => <td key={r.y} className="num">{r.m.count}</td>)}<td className="num">{db.manga.length}</td></tr>
+            <tr><td>Глав манги</td>{rows.map((r) => <td key={r.y} className="num">{fmt(r.ch)}</td>)}<td className="num">{fmt(rows.reduce((a, r) => a + r.ch, 0))}</td></tr>
+            <tr><td>Ср. оценка манги</td>{rows.map((r) => <td key={r.y} className="num">{fmt2(r.m.avg)}</td>)}<td className="num">{fmt2(fanficSummary(db.manga).avg)}</td></tr>
           </tbody>
         </table>
       </div>

@@ -5,8 +5,11 @@ declare global {
   interface Window { APP_CONFIG?: { supabaseUrl?: string; supabaseAnonKey?: string } }
 }
 
-const TABLES: Table[] = ['books', 'fanfics', 'toread'];
-export const emptyDb = (): Db => ({ books: [], fanfics: [], toread: [] });
+const TABLES: Table[] = ['books', 'fanfics', 'manga', 'toread'];
+/** Таблицы, которых ещё нет в базе Supabase (нужно выполнить SQL). */
+export const missingTables: Table[] = [];
+
+export const emptyDb = (): Db => ({ books: [], fanfics: [], manga: [], toread: [] });
 
 export interface Store {
   mode: 'cloud' | 'local';
@@ -39,7 +42,13 @@ function cloudStore(sb: SupabaseClient): Store {
       for (const t of TABLES) {
         // Supabase отдаёт не больше 1000 строк за раз — читаем страницами
         for (let from = 0; ; from += 1000) {
-          const rows = check(await sb.from(t).select('*').order('id').range(from, from + 999)) as never[];
+          const res = await sb.from(t).select('*').order('id').range(from, from + 999);
+          // таблицы, добавленные позже (манга), могут быть ещё не созданы в базе — тогда сайт работает без них
+          if (res.error && t === 'manga' && /could not find the table|does not exist/i.test(res.error.message)) {
+            if (!missingTables.includes(t)) missingTables.push(t);
+            break;
+          }
+          const rows = check(res) as never[];
           (db[t] as unknown[]).push(...rows.map(strip).map((r, i) => ({ ...r, id: (rows[i] as { id: number }).id })));
           if (rows.length < 1000) break;
         }
@@ -59,6 +68,10 @@ function cloudStore(sb: SupabaseClient): Store {
     },
     async bulk(db, replace) {
       for (const t of TABLES) {
+        if (missingTables.includes(t)) {
+          if ((db[t] ?? []).length) throw new Error('в базе ещё нет таблицы для манги — сначала выполните SQL из файла manga.sql');
+          continue;
+        }
         if (replace) check(await sb.from(t).delete().gt('id', 0));
         const rows = (db[t] ?? []) as object[];
         for (let i = 0; i < rows.length; i += 500) check(await sb.from(t).insert(rows.slice(i, i + 500)));

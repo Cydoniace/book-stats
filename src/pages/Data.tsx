@@ -4,7 +4,7 @@ import { Card } from '../components/ui';
 import { store, supabase } from '../lib/store';
 import type { Db, Table } from '../lib/types';
 
-const TABLES: Table[] = ['books', 'fanfics', 'toread'];
+const TABLES: Table[] = ['books', 'fanfics', 'manga', 'toread'];
 
 export default function DataPage() {
   const { db, reload } = useData();
@@ -15,7 +15,7 @@ export default function DataPage() {
 
   const exportJson = () => {
     const strip = (rows: { id: number }[]) => rows.map(({ id: _id, ...r }) => r);
-    const out = { version: 1, exported: new Date().toISOString(), books: strip(db.books), fanfics: strip(db.fanfics), toread: strip(db.toread) };
+    const out = { version: 1, exported: new Date().toISOString(), books: strip(db.books), fanfics: strip(db.fanfics), manga: strip(db.manga), toread: strip(db.toread) };
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
     a.download = `backup-books-${new Date().toISOString().slice(0, 10)}.json`;
@@ -32,7 +32,8 @@ export default function DataPage() {
       if (replace && !confirm(`Все текущие данные будут заменены содержимым файла (${n}). Продолжить?`)) { setBusy(false); return; }
       const strip = <T extends { id?: number }>(rows: T[] = []) => rows.map(({ id: _id, ...r }) => r);
       const fanfics = strip(data.fanfics).map((f) => ({ ...f, downloaded: !!(f as { downloaded?: boolean }).downloaded }));
-      await store.bulk({ books: strip(data.books), fanfics, toread: strip(data.toread) } as never, replace);
+      const manga = strip(data.manga).map((m) => ({ ...m, downloaded: !!(m as { downloaded?: boolean }).downloaded }));
+      await store.bulk({ books: strip(data.books), fanfics, manga, toread: strip(data.toread) } as never, replace);
       await reload();
       setMsg(`Готово, загружено — ${n} 🎉`);
     } catch (e) { setMsg('Ошибка: ' + (e as Error).message); }
@@ -43,7 +44,7 @@ export default function DataPage() {
   return (
     <div className="grid">
       <Card title="💾 Резервная копия">
-        <p>Сейчас в базе: книг <b>{db.books.length}</b>, фанфиков <b>{db.fanfics.length}</b>, to read <b>{db.toread.length}</b>.</p>
+        <p>Сейчас в базе: книг <b>{db.books.length}</b>, фанфиков <b>{db.fanfics.length}</b>, манги <b>{db.manga.length}</b>, to read <b>{db.toread.length}</b>.</p>
         <p className="muted small">Файл со всеми данными в формате JSON. Его можно загрузить обратно через импорт.</p>
         <button className="primary" onClick={exportJson}>Скачать копию</button>
       </Card>

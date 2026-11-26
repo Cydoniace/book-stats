@@ -1,12 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { emptyDb, store, supabase } from './lib/store';
+import { emptyDb, missingTables, store, supabase } from './lib/store';
 import type { Db, NewRow, Row, Table } from './lib/types';
 import { applyTheme, themeFor, type Theme } from './lib/theme';
 import Login from './pages/Login';
 import BooksPage from './pages/Books';
 import StatsPage from './pages/Stats';
 import FanficsPage from './pages/Fanfics';
+import MangaPage from './pages/Manga';
 import ToReadPage from './pages/ToRead';
 import ComparePage from './pages/Compare';
 import DataPage from './pages/Data';
@@ -26,7 +27,7 @@ const Ctx = createContext<DataCtx>(null!);
 export const useData = () => useContext(Ctx);
 
 const TABS = [
-  ['books', '📖 Книги'], ['stats', '📊 Статистика'], ['fanfics', '💌 Фанфики'], ['toread', '🌱 To read'], ['compare', '🗓 По годам'], ['data', '💾 Данные'],
+  ['books', '📖 Книги'], ['stats', '📊 Статистика'], ['fanfics', '💌 Фанфики'], ['manga', '🎴 Манга'], ['toread', '🌱 To read'], ['compare', '🗓 По годам'], ['data', '💾 Данные'],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 const tabFromHash = (): Tab => (TABS.find(([k]) => '#' + k === location.hash)?.[0] ?? 'books');
@@ -47,7 +48,7 @@ export default function App() {
     return () => mq.removeEventListener('change', on);
   }, []);
   // цвет года — на вкладках, где выбран год; остальные — розовые
-  const yearTab = tab === 'books' || tab === 'stats' || tab === 'fanfics';
+  const yearTab = tab === 'books' || tab === 'stats' || tab === 'fanfics' || tab === 'manga';
   const theme = useMemo(() => themeFor(yearTab ? year : 'all', dark), [yearTab, year, dark]);
   useEffect(() => applyTheme(theme), [theme]);
 
@@ -101,9 +102,12 @@ export default function App() {
       {store.mode === 'cloud' && db.fanfics.length > 0 && !('downloaded' in db.fanfics[0]) && (
         <div className="banner err">В базе ещё нет поля «скачан» у фанфиков, поэтому галочки не сохраняются. Выполните в Supabase → SQL Editor запрос из файла <code>fanfics-downloaded.sql</code>.</div>
       )}
+      {missingTables.includes('manga') && (
+        <div className="banner err">В базе ещё нет таблицы для манги. Выполните в Supabase → SQL Editor запрос из файла <code>manga.sql</code> — он создаст таблицу и перенесёт мангу из книг.</div>
+      )}
       {error && <div className="banner err">Ошибка загрузки: {error} <button onClick={reload}>Повторить</button></div>}
       <main>
-        {loading && !db.books.length ? <p className="muted loading">Загружаю книжки… 🌷</p> : !db.books.length && !db.fanfics.length && !db.toread.length && tab !== 'data' && !startEmpty ? (
+        {loading && !db.books.length ? <p className="muted loading">Загружаю книжки… 🌷</p> : !db.books.length && !db.fanfics.length && !db.manga.length && !db.toread.length && tab !== 'data' && !startEmpty ? (
           <div className="card empty">
             <div className="empty-emoji">🧸📚</div>
             <h2>Здесь пока пусто</h2>
@@ -116,6 +120,7 @@ export default function App() {
             {tab === 'books' && <BooksPage />}
             {tab === 'stats' && <StatsPage />}
             {tab === 'fanfics' && <FanficsPage />}
+            {tab === 'manga' && <MangaPage />}
             {tab === 'toread' && <ToReadPage />}
             {tab === 'compare' && <ComparePage />}
             {tab === 'data' && <DataPage />}

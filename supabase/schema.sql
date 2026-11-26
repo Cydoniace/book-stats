@@ -42,6 +42,25 @@ create table if not exists public.fanfics (
   created_at  timestamptz not null default now()
 );
 
+create table if not exists public.manga (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  year        int  not null,
+  month       int  check (month between 1 and 12),
+  title       text not null,
+  author      text,
+  kind        text,                       -- манга / манхва / манхуа
+  chapters    int,                        -- сколько глав
+  rating      numeric(3,1),
+  language    text,
+  site        text,
+  genre       text,
+  notes       text,
+  downloaded  boolean not null default false,
+  first_time  boolean,
+  created_at  timestamptz not null default now()
+);
+
 create table if not exists public.toread (
   id          bigint generated always as identity primary key,
   user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
@@ -58,15 +77,17 @@ alter table public.fanfics add column if not exists downloaded boolean not null 
 
 create index if not exists books_user_year on public.books (user_id, year);
 create index if not exists fanfics_user_year on public.fanfics (user_id, year);
+create index if not exists manga_user_year on public.manga (user_id, year);
 
 alter table public.books   enable row level security;
 alter table public.fanfics enable row level security;
+alter table public.manga   enable row level security;
 alter table public.toread  enable row level security;
 
 do $$
 declare t text;
 begin
-  foreach t in array array['books', 'fanfics', 'toread'] loop
+  foreach t in array array['books', 'fanfics', 'manga', 'toread'] loop
     execute format('drop policy if exists "own rows" on public.%I', t);
     execute format('create policy "own rows" on public.%I for all to authenticated
                     using (user_id = auth.uid()) with check (user_id = auth.uid())', t);
@@ -76,7 +97,7 @@ end $$;
 -- Права для вошедших пользователей (в новых проектах Supabase они не выдаются автоматически).
 -- Какие именно строки видит пользователь, всё равно решают правила RLS выше.
 grant usage on schema public to authenticated;
-grant select, insert, update, delete on public.books, public.fanfics, public.toread to authenticated;
+grant select, insert, update, delete on public.books, public.fanfics, public.manga, public.toread to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
 
 -- Сообщить API о новых таблицах сразу (иначе ошибка «schema cache» может держаться какое-то время)

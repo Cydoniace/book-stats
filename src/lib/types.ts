@@ -38,6 +38,25 @@ export interface Fanfic {
   downloaded: boolean;
 }
 
+export type MangaKind = 'манга' | 'манхва' | 'манхуа';
+
+export interface Manga {
+  id: number;
+  year: number;
+  month: number | null;
+  title: string;
+  author: string;
+  kind: MangaKind | string;
+  chapters: number | null;
+  rating: number | null;
+  language: string;
+  site: string;
+  genre: string;
+  notes: string;
+  downloaded: boolean;
+  first_time: boolean | null;
+}
+
 export interface ToRead {
   id: number;
   title: string;
@@ -50,6 +69,7 @@ export interface ToRead {
 export interface Db {
   books: Book[];
   fanfics: Fanfic[];
+  manga: Manga[];
   toread: ToRead[];
 }
 

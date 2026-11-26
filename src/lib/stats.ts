@@ -1,4 +1,4 @@
-import type { Book, Fanfic } from './types';
+import type { Book } from './types';
 
 export type Count = [string, number];
 
@@ -57,7 +57,7 @@ export function bookSummary(books: Book[]) {
   };
 }
 
-export function fanficSummary(ff: Fanfic[]) {
+export function fanficSummary(ff: { rating: number | null }[]) {
   const r = ratings(ff);
   return { count: ff.length, avg: avg(r), median: median(r) };
 }
