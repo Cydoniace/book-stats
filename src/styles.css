@@ -158,6 +158,8 @@ table.mini th, table.mini td { padding: 6px 10px; }
 .tile-icon { position: absolute; right: 12px; top: 8px; font-size: 30px; opacity: 0.85; transform: rotate(8deg); }
 .tile-label { color: var(--text-2); font-size: 13px; font-weight: 700; }
 .tile-value { font-size: 34px; font-weight: 900; line-height: 1.15; margin-top: 2px; color: var(--accent); }
+.pct { color: var(--text-2); font-weight: 700; font-size: 0.86em; white-space: nowrap; }
+.tile-pct { font-size: 18px; font-weight: 800; color: var(--text-2); margin-left: 8px; }
 .tile-hint { color: var(--text-2); font-size: 12px; margin-top: 2px; font-weight: 600; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; align-items: start; }
 .card.wide { grid-column: 1 / -1; }

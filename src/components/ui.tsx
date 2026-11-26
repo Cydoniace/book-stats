@@ -86,3 +86,10 @@ export function Rating({ v }: { v: number | null }) {
   if (v == null) return null;
   return <span className={'rating' + (v >= 9 ? ' hi' : v <= 5 ? ' lo' : '')}>{v}{v >= 10 ? ' 💖' : ''}</span>;
 }
+
+/** Небольшой процент рядом с числом: «· 66%». */
+export function Pct({ n, of }: { n: number; of: number }) {
+  if (!of) return null;
+  const p = (n / of) * 100;
+  return <span className="pct"> · {p > 0 && p < 1 ? '<1' : Math.round(p)}%</span>;
+}

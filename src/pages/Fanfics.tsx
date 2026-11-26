@@ -17,7 +17,7 @@ export default function FanficsPage() {
   const s = fanficSummary(ff);
   const groups = countBy(ff, (f) => ffGenreGroups(f.genre));
   const bars = (rows: [string, number][], map?: Record<string, string>) => (
-    <BarChart horizontal labels={rows.map(([k]) => (map ? label(map, k) : k))} series={[{ label: 'фанфиков', data: rows.map(([, n]) => n) }]} />
+    <BarChart horizontal labels={rows.map(([k]) => (map ? label(map, k) : k))} series={[{ label: 'фанфиков', data: rows.map(([, n]) => n) }]} total={ff.length} />
   );
   const list = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -42,11 +42,11 @@ export default function FanficsPage() {
             <Tile icon="💜" label="Главный фандом" value={countBy(ff, (f) => f.fandom)[0]?.[0] ?? '—'} />
           </div>
           <div className="grid">
-            <Card title="🗓 По месяцам"><BarChart labels={MONTHS_SHORT} series={[{ label: 'фанфиков', data: byMonth(ff) }]} /></Card>
-            <Card title="⭐ Оценки"><BarChart labels={ratingHist(ff).map((_, i) => String(i))} series={[{ label: 'фанфиков', data: ratingHist(ff) }]} /></Card>
+            <Card title="🗓 По месяцам"><BarChart labels={MONTHS_SHORT} series={[{ label: 'фанфиков', data: byMonth(ff) }]} total={ff.length} /></Card>
+            <Card title="⭐ Оценки"><BarChart labels={ratingHist(ff).map((_, i) => String(i))} series={[{ label: 'фанфиков', data: ratingHist(ff) }]} total={ff.length} /></Card>
             <Card title="🎀 Жанры">
               {bars(groups)}
-              <p className="muted small">Фанфик с несколькими жанрами считается в каждом из них.</p>
+              <p className="muted small">Фанфик с несколькими жанрами считается в каждом из них, поэтому проценты в сумме больше 100%.</p>
             </Card>
             <Card title="🌐 Сайты">{bars(countBy(ff, (f) => f.site))}</Card>
             <Card title="💜 Фандомы">{bars(countBy(ff, (f) => f.fandom))}</Card>
