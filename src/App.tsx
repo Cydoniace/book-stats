@@ -98,6 +98,9 @@ export default function App() {
       {store.mode === 'local' && (
         <div className="banner">Демо-режим: данные хранятся только в этом браузере. Чтобы хранить их в облаке, заполните <code>config.js</code> (см. README).</div>
       )}
+      {store.mode === 'cloud' && db.fanfics.length > 0 && !('downloaded' in db.fanfics[0]) && (
+        <div className="banner err">В базе ещё нет поля «скачан» у фанфиков, поэтому галочки не сохраняются. Выполните в Supabase → SQL Editor запрос из файла <code>fanfics-downloaded.sql</code>.</div>
+      )}
       {error && <div className="banner err">Ошибка загрузки: {error} <button onClick={reload}>Повторить</button></div>}
       <main>
         {loading && !db.books.length ? <p className="muted loading">Загружаю книжки… 🌷</p> : !db.books.length && !db.fanfics.length && !db.toread.length && tab !== 'data' && !startEmpty ? (
