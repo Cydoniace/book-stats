@@ -69,5 +69,11 @@ begin
   end loop;
 end $$;
 
+-- Права для вошедших пользователей (в новых проектах Supabase они не выдаются автоматически).
+-- Какие именно строки видит пользователь, всё равно решают правила RLS выше.
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.books, public.fanfics, public.toread to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+
 -- Сообщить API о новых таблицах сразу (иначе ошибка «schema cache» может держаться какое-то время)
 notify pgrst, 'reload schema';
