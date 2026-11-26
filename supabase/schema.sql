@@ -68,3 +68,6 @@ begin
                     using (user_id = auth.uid()) with check (user_id = auth.uid())', t);
   end loop;
 end $$;
+
+-- Сообщить API о новых таблицах сразу (иначе ошибка «schema cache» может держаться какое-то время)
+notify pgrst, 'reload schema';
