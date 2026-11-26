@@ -52,7 +52,7 @@ export default function DataPage() {
           <label><input type="radio" checked={replace} onChange={() => setReplace(true)} /> заменить всё</label>
           <label><input type="radio" checked={!replace} onChange={() => setReplace(false)} /> добавить к имеющимся</label>
         </div>
-        <input ref={file} type="file" accept=".json,application/json" disabled={busy} onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
+        <input ref={file} type="file" disabled={busy} onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
         {busy && <p className="muted">Загрузка…</p>}
         {msg && <p>{msg}</p>}
       </Card>

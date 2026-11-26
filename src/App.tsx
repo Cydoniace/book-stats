@@ -31,6 +31,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tab, setTab] = useState<Tab>(tabFromHash);
+  const [startEmpty, setStartEmpty] = useState(false);
 
   useEffect(() => {
     const on = () => setTab(tabFromHash());
@@ -81,7 +82,14 @@ export default function App() {
       )}
       {error && <div className="banner err">Ошибка загрузки: {error} <button onClick={reload}>Повторить</button></div>}
       <main>
-        {loading && !db.books.length ? <p className="muted">Загрузка…</p> : (
+        {loading && !db.books.length ? <p className="muted">Загрузка…</p> : !db.books.length && !db.fanfics.length && !db.toread.length && tab !== 'data' && !startEmpty ? (
+          <div className="card empty">
+            <h2>Здесь пока пусто</h2>
+            <p>В базе ещё нет ни одной книги. Чтобы перенести данные из Google-таблицы, откройте раздел <b>Данные</b> и в блоке «Импорт» выберите файл <code>import-from-sheet.json</code>.</p>
+            {store.mode === 'local' && <p className="muted small">Сайт сейчас в демо-режиме: импорт сохранится только в этом браузере на этом устройстве.</p>}
+            <div className="actions"><a className="btn primary" href="#data">Перейти к импорту</a><button onClick={() => setStartEmpty(true)}>Начать с нуля</button></div>
+          </div>
+        ) : (
           <>
             {tab === 'books' && <BooksPage />}
             {tab === 'stats' && <StatsPage />}
