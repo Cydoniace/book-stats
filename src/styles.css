@@ -169,3 +169,18 @@ table.mini th, table.mini td { padding: 5px 8px; }
 .empty p { margin: 0; }
 a.btn { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border-radius: 8px; text-decoration: none; border: 1px solid var(--border); }
 a.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+/* длинные списки: окно высотой с экран, прокрутка вниз и вбок, полоса прокрутки всегда видна */
+.table-wrap.scroll { overflow: auto; max-height: calc(100vh - 190px); min-height: 320px; overscroll-behavior: contain; }
+.table-wrap.scroll thead th { position: sticky; top: 0; z-index: 2; box-shadow: inset 0 -1px 0 var(--border); }
+.table-wrap.scroll td.title, .table-wrap.scroll th.title-h { position: sticky; left: 0; z-index: 1; background: var(--surface); box-shadow: inset -1px 0 0 var(--border); }
+.table-wrap.scroll th.title-h { z-index: 3; }
+.table-wrap.scroll tbody tr:hover td.title { background: var(--row-hover); }
+.table-wrap.scroll::-webkit-scrollbar { width: 12px; height: 12px; }
+.table-wrap.scroll::-webkit-scrollbar-thumb { background: var(--axis); border-radius: 6px; border: 3px solid var(--surface); }
+.table-wrap.scroll::-webkit-scrollbar-track { background: var(--surface); }
+.table-wrap.scroll { scrollbar-width: auto; scrollbar-color: var(--axis) var(--surface); }
+@media (max-width: 760px) {
+  .table-wrap.scroll { max-height: calc(100vh - 100px); max-height: calc(100dvh - 100px); }
+  .table-wrap.scroll td.title { min-width: 150px; max-width: 180px; }
+}

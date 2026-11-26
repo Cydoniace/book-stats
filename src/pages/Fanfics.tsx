@@ -56,9 +56,9 @@ export default function FanficsPage() {
       ) : (
         <>
           <div className="toolbar"><input className="search" placeholder="Поиск: название, жанр, пометки…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
-          <div className="table-wrap">
+          <div className="table-wrap scroll">
             <table className="list">
-              <thead><tr><th>№</th><th>Месяц</th><th>Название</th><th>Фандом</th><th className="num">Оценка</th><th>Язык</th><th>Сайт</th><th>Жанр</th><th>Пометки</th></tr></thead>
+              <thead><tr><th>№</th><th>Месяц</th><th className="title-h">Название</th><th>Фандом</th><th className="num">Оценка</th><th>Язык</th><th>Сайт</th><th>Жанр</th><th>Пометки</th></tr></thead>
               <tbody>
                 {list.map(({ f, n }) => (
                   <tr key={f.id} onClick={() => setEdit(f)}>

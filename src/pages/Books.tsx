@@ -45,11 +45,11 @@ export default function BooksPage() {
         <button className="primary" onClick={() => setEdit('new')}>+ Книга</button>
       </div>
       <p className="muted small">Показано {rows.length} из {inYear.length}. Нажмите на строку, чтобы изменить.</p>
-      <div className="table-wrap">
+      <div className="table-wrap scroll">
         <table className="list">
           <thead>
             <tr>
-              {th('order', '№')}<th>Месяц</th><th>Даты</th>{th('title', 'Название')}{th('author', 'Автор')}{th('rating', 'Оценка', 'num')}
+              {th('order', '№')}<th>Месяц</th><th>Даты</th>{th('title', 'Название', 'title-h')}{th('author', 'Автор')}{th('rating', 'Оценка', 'num')}
               <th>Жанр</th><th>Откуда</th><th>Язык</th><th>Страна</th><th>Год</th>{th('pages', 'Стр.', 'num')}<th>Формат</th><th title="Новый автор / перечитываю">Метки</th>
             </tr>
           </thead>

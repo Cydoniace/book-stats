@@ -37,9 +37,9 @@ export default function ToReadPage() {
         </div>
       )}
       <p className="muted small">{list.length} из {db.toread.length} · скачано {db.toread.filter((r) => r.downloaded).length}</p>
-      <div className="table-wrap">
+      <div className="table-wrap scroll">
         <table className="list">
-          <thead><tr><th>№</th><th>Название</th><th>Автор</th><th>Комментарий</th><th>Скачана</th></tr></thead>
+          <thead><tr><th>№</th><th className="title-h">Название</th><th>Автор</th><th>Комментарий</th><th>Скачана</th></tr></thead>
           <tbody>
             {list.map((r, i) => (
               <tr key={r.id} onClick={() => setEdit(r)}>
