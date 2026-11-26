@@ -139,6 +139,11 @@ table.mini th, table.mini td { padding: 6px 10px; }
 .list.books td.pickcol, .list.books th.pick-h { border-left: 2px solid color-mix(in srgb, var(--bar) 55%, transparent); }
 .list.books td.author, .list.books th.author-h { border-right: 2px solid color-mix(in srgb, var(--bar) 55%, transparent); }
 .list.books td.author { font-size: 16px; font-weight: 600; }
+/* галочка «скачан» */
+.list td.dl-cell { cursor: pointer; }
+.dl { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9px; border: 2.5px solid var(--border); background: var(--surface); font-weight: 900; font-size: 17px; color: var(--on-accent); transition: transform 0.15s, background 0.15s; }
+.list td.dl-cell:hover .dl { transform: scale(1.12); border-color: var(--bar); }
+.dl.on { background: var(--accent); border-color: var(--accent); }
 /* разделитель месяцев */
 .list tr.month-sep td { padding: 14px 10px 6px; border-bottom: 3px solid var(--bar); background: var(--accent-soft-2); cursor: default; }
 .list tr.month-sep:hover { background: none; }

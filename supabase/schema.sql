@@ -38,6 +38,7 @@ create table if not exists public.fanfics (
   genre       text,
   notes       text,
   first_time  boolean,
+  downloaded  boolean not null default false,  -- скачан ли фанфик
   created_at  timestamptz not null default now()
 );
 
@@ -51,6 +52,9 @@ create table if not exists public.toread (
   note        text,
   created_at  timestamptz not null default now()
 );
+
+-- для баз, созданных до появления поля «скачан»
+alter table public.fanfics add column if not exists downloaded boolean not null default false;
 
 create index if not exists books_user_year on public.books (user_id, year);
 create index if not exists fanfics_user_year on public.fanfics (user_id, year);

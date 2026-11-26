@@ -2,8 +2,11 @@
 
 Usage: python3 sheet_to_json.py <dir with books24.csv, ff24.csv, stats24.csv, ..., toread.csv> <out.json>
 CSV export URL: https://docs.google.com/spreadsheets/d/<ID>/gviz/tq?tqx=out:csv&gid=<GID>
+Чтобы перенести отметку «скачан» (курсив в названии фанфика), положите рядом ff24.html, ff25.html, ...:
+https://docs.google.com/spreadsheets/d/<ID>/htmlview/sheet?headers=true&gid=<GID>
 """
 import csv, json, re, sys, difflib, os
+from html.parser import HTMLParser
 
 MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
 MONTHS_FULL = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август',
@@ -66,6 +69,37 @@ def norm(t):
     return s(t).lower().replace('ё', 'е')
 
 
+def italic_titles(path):
+    """Список (название, курсив?) по строкам листа из HTML-выгрузки Google Sheets."""
+    h = open(path, encoding='utf-8').read()
+    ital = {k for k, v in re.findall(r'\.(s\d+)\{([^}]*)\}', h) if 'font-style:italic' in v}
+
+    class P(HTMLParser):
+        def __init__(self):
+            super().__init__(); self.rows = []; self.row = None; self.cell = None
+        def handle_starttag(self, tag, a):
+            a = dict(a)
+            if tag == 'tr':
+                self.row = []
+            elif tag == 'td' and self.row is not None:
+                self.cell = {'text': '', 'it': any(c in ital for c in (a.get('class') or '').split())}
+            elif tag == 'span' and self.cell is not None and 'italic' in (a.get('style') or ''):
+                self.cell['it'] = True
+        def handle_endtag(self, tag):
+            if tag == 'td' and self.cell is not None:
+                self.row.append(self.cell); self.cell = None
+            elif tag == 'tr' and self.row is not None:
+                self.rows.append(self.row); self.row = None
+        def handle_data(self, d):
+            if self.cell is not None:
+                self.cell['text'] += d
+
+    p = P(); p.feed(h)
+    hdr = next(r for r in p.rows if any(c['text'].strip() == 'название' for c in r))
+    ti = [c['text'].strip() for c in hdr].index('название')
+    return [(s(r[ti]['text']), r[ti]['it']) for r in p.rows[p.rows.index(hdr) + 1:] if len(r) > ti and s(r[ti]['text'])]
+
+
 def rows(path):
     with open(path, encoding='utf-8') as f:
         r = list(csv.reader(f))
@@ -118,13 +152,24 @@ def main(src, out):
         p = os.path.join(src, f'ff{yy}.csv')
         if os.path.exists(p):
             h, data = rows(p)
+            hp = os.path.join(src, f'ff{yy}.html')
+            italics = italic_titles(hp) if os.path.exists(hp) else []
+            year_ff = []
             for x in data:
                 x += [''] * (10 - len(x))
                 if not s(x[2]):
                     continue
-                fanfics.append(dict(year=year, month=month(x[1]), title=s(x[2]), fandom=s(x[3]).lower(),
+                year_ff.append(dict(year=year, month=month(x[1]), title=s(x[2]), fandom=s(x[3]).lower(),
                                     rating=num(x[4]), language=s(x[5]), site=s(x[6]).lower(), genre=s(x[7]),
-                                    notes=(x[8] or '').strip(), first_time=flag(x[9]) if len(h) > 9 else None))
+                                    notes=(x[8] or '').strip(), first_time=flag(x[9]) if len(h) > 9 else None,
+                                    downloaded=False))
+            if italics:
+                if [t for t, _ in italics] != [f['title'] for f in year_ff]:
+                    print(f'! ff{yy}: строки HTML и CSV не совпадают, отметки «скачан» пропущены', file=sys.stderr)
+                else:
+                    for f, (_, it) in zip(year_ff, italics):
+                        f['downloaded'] = it
+            fanfics += year_ff
     p = os.path.join(src, 'toread.csv')
     if os.path.exists(p):
         _, data = rows(p)
@@ -138,8 +183,8 @@ def main(src, out):
                                note=s(' '.join(c for c in [dl.partition(',')[2]] + x[5:] if s(c)))))
     with open(out, 'w', encoding='utf-8') as f:
         json.dump(dict(version=1, books=books, fanfics=fanfics, toread=toread), f, ensure_ascii=False, indent=1)
-    print(f'книг: {len(books)}, фанфиков: {len(fanfics)}, to read: {len(toread)}, '
-          f'отмечено любимых/нелюбимых: {sum(1 for b in books if b["pick"])}')
+    print(f'книг: {len(books)}, фанфиков: {len(fanfics)} (скачано {sum(1 for f in fanfics if f["downloaded"])}), '
+          f'to read: {len(toread)}, отмечено любимых/нелюбимых: {sum(1 for b in books if b["pick"])}')
 
 
 if __name__ == '__main__':

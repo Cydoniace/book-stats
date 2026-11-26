@@ -31,7 +31,8 @@ export default function DataPage() {
       if (!TABLES.some((t) => data[t]?.length)) throw new Error('в файле нет записей');
       if (replace && !confirm(`Все текущие данные будут заменены содержимым файла (${n}). Продолжить?`)) { setBusy(false); return; }
       const strip = <T extends { id?: number }>(rows: T[] = []) => rows.map(({ id: _id, ...r }) => r);
-      await store.bulk({ books: strip(data.books), fanfics: strip(data.fanfics), toread: strip(data.toread) } as never, replace);
+      const fanfics = strip(data.fanfics).map((f) => ({ ...f, downloaded: !!(f as { downloaded?: boolean }).downloaded }));
+      await store.bulk({ books: strip(data.books), fanfics, toread: strip(data.toread) } as never, replace);
       await reload();
       setMsg(`Готово, загружено — ${n} 🎉`);
     } catch (e) { setMsg('Ошибка: ' + (e as Error).message); }

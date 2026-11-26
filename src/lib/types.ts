@@ -34,6 +34,8 @@ export interface Fanfic {
   genre: string;
   notes: string;
   first_time: boolean | null;
+  /** скачан ли фанфик (в старой таблице такие названия были курсивом) */
+  downloaded: boolean;
 }
 
 export interface ToRead {
